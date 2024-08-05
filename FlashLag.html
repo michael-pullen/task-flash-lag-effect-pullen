@@ -184,7 +184,7 @@
 
         function sendScoresToSheet(scores) {
             const url = 'https://script.google.com/macros/s/AKfycbyMGIeJog6ad7yfCirNaz1hAY-41PQIDSKOty1rbt_P1mvHm6bxbySoW6KYY1UKP4WZ/exec'; // Replace with your web app URL
-            const data = { scores: scores };
+            const data = { scores: scores, speed: blueCircle.dx };
 
             fetch(url, {
                 method: 'POST',
