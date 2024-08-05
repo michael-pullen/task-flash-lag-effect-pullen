@@ -8,9 +8,14 @@
 <body>
     <form id="testForm">
         <input type="text" id="score" placeholder="Enter score" />
-        <button type="button" onclick="sendScore()">Send Score</button>
+        <button type="submit">Send Score</button>
     </form>
     <script>
+        document.getElementById('testForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent the default form submission
+            sendScore(); // Call the function to handle the POST request
+        });
+
         function sendScore() {
             const url = 'YOUR_WEB_APP_URL'; // Replace with your web app URL
             const score = document.getElementById('score').value;
