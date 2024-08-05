@@ -60,7 +60,6 @@
         let flashPosition = null;
         let userClickPosition = null;
         let scores = []; // Array to store scores
-        let gameActive = true; // Flag to control game state
 
         function drawCircle(x, y, radius, color) {
             ctx.beginPath();
@@ -71,8 +70,6 @@
         }
 
         function draw() {
-            if (!gameActive) return; // Stop drawing if the game is not active
-            
             startButton.style.display = 'none';
             resultDiv.innerHTML = '';
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -153,14 +150,17 @@
             if (scores.length === 10) {
                 sendScoresToSheet(scores);
                 scores = []; // Clear the scores array after sending
-                terminateGame(); // End the game
+
+                // Reset dx and prompt user
+                blueCircle.dx = 1;
+                resultDiv.innerHTML = 'You have completed 10 rounds! Please try again with a lower speed.';
+                resetButton.style.display = 'inline'; // Show reset button after result
             }
         }
 
         function displayResult() {
             resultDiv.innerHTML = `You were off by ${userClickPosition - flashPosition} pixels.`;
             drawVerticalLines();
-            resetButton.style.display = 'inline'; // Show reset button after result
         }
 
         function drawVerticalLines() {
@@ -207,15 +207,8 @@
             });
         }
 
-        function terminateGame() {
-            gameActive = false; // Set game to inactive
-            resultDiv.innerHTML = 'Game Over! You have completed 10 rounds.';
-            startButton.style.display = 'none'; // Hide start button
-            resetButton.style.display = 'none'; // Hide reset button
-        }
-
         startButton.addEventListener('click', () => {
-            if (!animationFrameId && gameActive) {
+            if (!animationFrameId) {
                 reset();
                 draw();
             }
@@ -225,7 +218,6 @@
 
         initialDraw();
         reset(); // Ensure the flashFrame is set before starting
-
     </script>
 </body>
 </html>
