@@ -150,17 +150,13 @@
             if (scores.length === 10) {
                 sendScoresToSheet(scores);
                 scores = []; // Clear the scores array after sending
-
-                // Reset dx and prompt user
-                blueCircle.dx = 1;
-                resultDiv.innerHTML = 'You have completed 10 rounds! Please try again with a lower speed.';
-                resetButton.style.display = 'inline'; // Show reset button after result
             }
         }
 
         function displayResult() {
             resultDiv.innerHTML = `You were off by ${userClickPosition - flashPosition} pixels.`;
             drawVerticalLines();
+            resetButton.style.display = 'inline'; // Show reset button after result
         }
 
         function drawVerticalLines() {
