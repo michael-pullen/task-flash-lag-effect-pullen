@@ -186,20 +186,6 @@ function sendScoreToSheet(score) {
         },
         body: JSON.stringify(data),
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok ' + response.statusText);
-        }
-        return response.text();
-    })
-    .then(result => {
-        console.log('Success:', result);
-        alert('Success: ' + result);
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error: ' + error);
-    });
 }
 
 startButton.addEventListener('click', () => {
