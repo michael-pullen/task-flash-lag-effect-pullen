@@ -17,32 +17,33 @@
         });
 
         function sendScore() {
-            const url = 'https://script.google.com/macros/s/AKfycbyMGIeJog6ad7yfCirNaz1hAY-41PQIDSKOty1rbt_P1mvHm6bxbySoW6KYY1UKP4WZ/exec'; // Replace with your web app URL
-            const score = document.getElementById('score').value;
-            const data = { score: score };
+    const corsProxy = 'https://cors-anywhere.herokuapp.com/';
+    const url = corsProxy + 'https://script.google.com/macros/s/AKfycbyMGIeJog6ad7yfCirNaz1hAY-41PQIDSKOty1rbt_P1mvHm6bxbySoW6KYY1UKP4WZ/exec'; // Replace with your web app URL
+    const score = document.getElementById('score').value;
+    const data = { score: score };
 
-            fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data),
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok ' + response.statusText);
-                }
-                return response.text();
-            })
-            .then(result => {
-                console.log('Success:', result);
-                alert('Success: ' + result);
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Error: ' + error);
-            });
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok ' + response.statusText);
         }
+        return response.text();
+    })
+    .then(result => {
+        console.log('Success:', result);
+        alert('Success: ' + result);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error: ' + error);
+    });
+}
     </script>
 </body>
 </html>
