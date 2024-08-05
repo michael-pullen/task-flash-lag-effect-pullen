@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flash Lag Effect Demo</title>
+    <style>
+        #canvasContainer {
+            position: relative;
+            display: inline-block;
+        }
+        canvas {
+            border: 1px solid black;
+        }
+        .button-container {
+            position: absolute;
+            bottom: 10px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        #result {
+            position: absolute;
+            top: 10px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 18px;
+        }
+        #resetButton {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvasContainer">
+        <canvas id="myCanvas" width="650" height="400"></canvas>
+        <div class="button-container">
+            <button id="startButton">Start</button>
+            <button id="resetButton">Reset</button>
+        </div>
+        <div id="result"></div>
+    </div>
+    <script>
+    const canvas = document.getElementById('myCanvas');
+const ctx = canvas.getContext('2d');
+const startButton = document.getElementById('startButton');
+const resultDiv = document.getElementById('result');
+const resetButton = document.getElementById('resetButton');
+
+const blueCircle = { x: 50, y: canvas.height / 2, radius: 10, dx: 5 };
+const redCircle = { x: canvas.width - 30, y: 30, radius: 25, visible: false }; // Top-right position
+
+let animationFrameId;
+let flashX;
+let flashFrame;
+let frameCount = 0;
+let flashPosition = null;
+let userClickPosition = null;
+
+function drawCircle(x, y, radius, color) {
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2, false);
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.closePath();
+}
+
+function draw() {
+	startButton.style.display = 'none';
+    resultDiv.innerHTML = '';
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    drawCircle(blueCircle.x, blueCircle.y, blueCircle.radius, 'blue');
+    if (redCircle.visible) {
+        drawCircle(redCircle.x, redCircle.y, redCircle.radius, 'red');
+    }
+
+    blueCircle.x += blueCircle.dx;
+
+    if (blueCircle.x > canvas.width + blueCircle.radius) {
+        blueCircle.x = -blueCircle.radius;
+    }
+
+    if (blueCircle.x >= flashX && flashPosition === null) {
+        redCircle.visible = true;
+        flashPosition = blueCircle.x;
+    } else {
+        redCircle.visible = false;
+    }
+
+    if (blueCircle.x > canvas.width - 50 && frameCount > 0) {
+        cancelAnimationFrame(animationFrameId);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        promptUserClick();
+    } else {
+        frameCount++;
+        animationFrameId = requestAnimationFrame(draw);
+    }
+}
+
+function initialDraw() {
+    drawCircle(blueCircle.x, blueCircle.y, blueCircle.radius, 'blue');
+    resultDiv.innerHTML = 'After pressing start, follow the blue circle and note its position at the time of the flash in the upper right.';
+}
+
+function reset() {
+    cancelAnimationFrame(animationFrameId);
+    blueCircle.x = 50;
+    frameCount = 0;
+    flashX = generateFlashPosition();
+    flashFrame = Math.floor(flashX / blueCircle.dx);
+    flashPosition = null;
+    userClickPosition = null;
+    redCircle.visible = false;
+    resultDiv.innerHTML = '';
+    resetButton.style.display = 'none'; // Hide reset button during animation
+    startButton.style.display = 'inline';
+    ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
+    initialDraw();
+    animationFrameId = null;
+}
+
+function generateFlashPosition() {
+    // Define the minimum and maximum flash positions
+    const minX = 100;
+    const maxX = canvas.width - 100;
+
+    // Ensure the flash position is between minX and maxX
+    return Math.random() * (maxX - minX) + minX;
+}
+
+function promptUserClick() {
+    resultDiv.innerHTML = 'Click where the circle was when the flash happened.';
+    canvas.addEventListener('click', recordUserClick);
+}
+
+function recordUserClick(event) {
+    const rect = canvas.getBoundingClientRect();
+    userClickPosition = event.clientX - rect.left;
+    canvas.removeEventListener('click', recordUserClick);
+    displayResult();
+    sendScoreToSheet(userClickPosition - flashPosition); // Send the result to Google Sheet
+}
+
+function displayResult() {
+    resultDiv.innerHTML = `You were off by ${userClickPosition - flashPosition} pixels.`;
+    drawVerticalLines();
+    resetButton.style.display = 'inline'; // Show reset button after result
+}
+
+function drawVerticalLines() {
+    const padding = 40; // Padding to ensure lines don’t reach the edges
+
+    // Clear previous lines
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.beginPath();
+    ctx.moveTo(flashPosition, padding);
+    ctx.lineTo(flashPosition, canvas.height - padding);
+    ctx.strokeStyle = 'red';
+    ctx.stroke();
+    
+    ctx.beginPath();
+    ctx.moveTo(userClickPosition, padding);
+    ctx.lineTo(userClickPosition, canvas.height - padding);
+    ctx.strokeStyle = 'black';
+    ctx.stroke();
+}
+
+function handleReset() {
+    reset(); // Clear canvas and reset state
+}
+
+function sendScoreToSheet(score) {
+    const url = 'https://script.google.com/macros/s/AKfycbz9zRLK0UO2WSx7NFQ95JcXvuUDT9RFPmppXtKtF7g_03vKxmi--hMJTjRFLEgV5aSb/exec'; // Replace with the URL from the Apps Script deployment
+    const data = { score: score };
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+    })
+    .then(response => response.text())
+    .then(result => {
+        console.log('Success:', result);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+
+startButton.addEventListener('click', () => {
+    if (!animationFrameId) {
+        reset();
+        draw();
+    }
+});
+
+resetButton.addEventListener('click', handleReset);
+
+initialDraw();
+reset(); // Ensure the flashFrame is set before starting
+
+</script>
+</body>
+</html>
