@@ -44,162 +44,176 @@
         <div id="result"></div>
     </div>
     <script>
-    const canvas = document.getElementById('myCanvas');
-const ctx = canvas.getContext('2d');
-const startButton = document.getElementById('startButton');
-const resultDiv = document.getElementById('result');
-const resetButton = document.getElementById('resetButton');
+        const canvas = document.getElementById('myCanvas');
+        const ctx = canvas.getContext('2d');
+        const startButton = document.getElementById('startButton');
+        const resultDiv = document.getElementById('result');
+        const resetButton = document.getElementById('resetButton');
 
-const blueCircle = { x: 50, y: canvas.height / 2, radius: 10, dx: 5 };
-const redCircle = { x: canvas.width - 30, y: 30, radius: 25, visible: false }; // Top-right position
+        const blueCircle = { x: 50, y: canvas.height / 2, radius: 10, dx: 5 };
+        const redCircle = { x: canvas.width - 30, y: 30, radius: 25, visible: false }; // Top-right position
 
-let animationFrameId;
-let flashX;
-let flashFrame;
-let frameCount = 0;
-let flashPosition = null;
-let userClickPosition = null;
+        let animationFrameId;
+        let flashX;
+        let flashFrame;
+        let frameCount = 0;
+        let flashPosition = null;
+        let userClickPosition = null;
+        let scores = []; // Array to store scores
 
-function drawCircle(x, y, radius, color) {
-    ctx.beginPath();
-    ctx.arc(x, y, radius, 0, Math.PI * 2, false);
-    ctx.fillStyle = color;
-    ctx.fill();
-    ctx.closePath();
-}
+        function drawCircle(x, y, radius, color) {
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI * 2, false);
+            ctx.fillStyle = color;
+            ctx.fill();
+            ctx.closePath();
+        }
 
-function draw() {
-	startButton.style.display = 'none';
-    resultDiv.innerHTML = '';
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+        function draw() {
+            startButton.style.display = 'none';
+            resultDiv.innerHTML = '';
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    drawCircle(blueCircle.x, blueCircle.y, blueCircle.radius, 'blue');
-    if (redCircle.visible) {
-        drawCircle(redCircle.x, redCircle.y, redCircle.radius, 'red');
-    }
+            drawCircle(blueCircle.x, blueCircle.y, blueCircle.radius, 'blue');
+            if (redCircle.visible) {
+                drawCircle(redCircle.x, redCircle.y, redCircle.radius, 'red');
+            }
 
-    blueCircle.x += blueCircle.dx;
+            blueCircle.x += blueCircle.dx;
 
-    if (blueCircle.x > canvas.width + blueCircle.radius) {
-        blueCircle.x = -blueCircle.radius;
-    }
+            if (blueCircle.x > canvas.width + blueCircle.radius) {
+                blueCircle.x = -blueCircle.radius;
+            }
 
-    if (blueCircle.x >= flashX && flashPosition === null) {
-        redCircle.visible = true;
-        flashPosition = blueCircle.x;
-    } else {
-        redCircle.visible = false;
-    }
+            if (blueCircle.x >= flashX && flashPosition === null) {
+                redCircle.visible = true;
+                flashPosition = blueCircle.x;
+            } else {
+                redCircle.visible = false;
+            }
 
-    if (blueCircle.x > canvas.width - 50 && frameCount > 0) {
-        cancelAnimationFrame(animationFrameId);
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        promptUserClick();
-    } else {
-        frameCount++;
-        animationFrameId = requestAnimationFrame(draw);
-    }
-}
+            if (blueCircle.x > canvas.width - 50 && frameCount > 0) {
+                cancelAnimationFrame(animationFrameId);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                promptUserClick();
+            } else {
+                frameCount++;
+                animationFrameId = requestAnimationFrame(draw);
+            }
+        }
 
-function initialDraw() {
-    drawCircle(blueCircle.x, blueCircle.y, blueCircle.radius, 'blue');
-    resultDiv.innerHTML = 'After pressing start, follow the blue circle and note its position at the time of the flash in the upper right.';
-}
+        function initialDraw() {
+            drawCircle(blueCircle.x, blueCircle.y, blueCircle.radius, 'blue');
+            resultDiv.innerHTML = 'After pressing start, follow the blue circle and note its position at the time of the flash in the upper right.';
+        }
 
-function reset() {
-    cancelAnimationFrame(animationFrameId);
-    blueCircle.x = 50;
-    frameCount = 0;
-    flashX = generateFlashPosition();
-    flashFrame = Math.floor(flashX / blueCircle.dx);
-    flashPosition = null;
-    userClickPosition = null;
-    redCircle.visible = false;
-    resultDiv.innerHTML = '';
-    resetButton.style.display = 'none'; // Hide reset button during animation
-    startButton.style.display = 'inline';
-    ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
-    initialDraw();
-    animationFrameId = null;
-}
+        function reset() {
+            cancelAnimationFrame(animationFrameId);
+            blueCircle.x = 50;
+            frameCount = 0;
+            flashX = generateFlashPosition();
+            flashFrame = Math.floor(flashX / blueCircle.dx);
+            flashPosition = null;
+            userClickPosition = null;
+            redCircle.visible = false;
+            resultDiv.innerHTML = '';
+            resetButton.style.display = 'none'; // Hide reset button during animation
+            startButton.style.display = 'inline';
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
+            initialDraw();
+            animationFrameId = null;
+        }
 
-function generateFlashPosition() {
-    // Define the minimum and maximum flash positions
-    const minX = 100;
-    const maxX = canvas.width - 100;
+        function generateFlashPosition() {
+            // Define the minimum and maximum flash positions
+            const minX = 100;
+            const maxX = canvas.width - 100;
 
-    // Ensure the flash position is between minX and maxX
-    return Math.random() * (maxX - minX) + minX;
-}
+            // Ensure the flash position is between minX and maxX
+            return Math.random() * (maxX - minX) + minX;
+        }
 
-function promptUserClick() {
-    resultDiv.innerHTML = 'Click where the circle was when the flash happened.';
-    canvas.addEventListener('click', recordUserClick);
-}
+        function promptUserClick() {
+            resultDiv.innerHTML = 'Click where the circle was when the flash happened.';
+            canvas.addEventListener('click', recordUserClick);
+        }
 
-function recordUserClick(event) {
-    const rect = canvas.getBoundingClientRect();
-    userClickPosition = event.clientX - rect.left;
-    canvas.removeEventListener('click', recordUserClick);
-    displayResult();
-    sendScoreToSheet(userClickPosition - flashPosition); // Send the result to Google Sheet
-}
+        function recordUserClick(event) {
+            const rect = canvas.getBoundingClientRect();
+            userClickPosition = event.clientX - rect.left;
+            canvas.removeEventListener('click', recordUserClick);
+            displayResult();
+            const score = userClickPosition - flashPosition; // Calculate the score
+            scores.push(score); // Add score to the array
 
-function displayResult() {
-    resultDiv.innerHTML = `You were off by ${userClickPosition - flashPosition} pixels.`;
-    drawVerticalLines();
-    resetButton.style.display = 'inline'; // Show reset button after result
-}
+            // Send scores to the Google Sheet if we have 10 scores
+            if (scores.length === 10) {
+                sendScoresToSheet(scores);
+                scores = []; // Clear the scores array after sending
+            }
+        }
 
-function drawVerticalLines() {
-    const padding = 40; // Padding to ensure lines don’t reach the edges
+        function displayResult() {
+            resultDiv.innerHTML = `You were off by ${userClickPosition - flashPosition} pixels.`;
+            drawVerticalLines();
+            resetButton.style.display = 'inline'; // Show reset button after result
+        }
 
-    // Clear previous lines
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+        function drawVerticalLines() {
+            const padding = 40; // Padding to ensure lines don’t reach the edges
 
-    ctx.beginPath();
-    ctx.moveTo(flashPosition, padding);
-    ctx.lineTo(flashPosition, canvas.height - padding);
-    ctx.strokeStyle = 'red';
-    ctx.stroke();
-    
-    ctx.beginPath();
-    ctx.moveTo(userClickPosition, padding);
-    ctx.lineTo(userClickPosition, canvas.height - padding);
-    ctx.strokeStyle = 'black';
-    ctx.stroke();
-}
+            // Clear previous lines
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-function handleReset() {
-    reset(); // Clear canvas and reset state
-}
+            ctx.beginPath();
+            ctx.moveTo(flashPosition, padding);
+            ctx.lineTo(flashPosition, canvas.height - padding);
+            ctx.strokeStyle = 'red';
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(userClickPosition, padding);
+            ctx.lineTo(userClickPosition, canvas.height - padding);
+            ctx.strokeStyle = 'black';
+            ctx.stroke();
+        }
 
-function sendScoreToSheet(score) {
-    const url = 'https://script.google.com/macros/s/AKfycbyMGIeJog6ad7yfCirNaz1hAY-41PQIDSKOty1rbt_P1mvHm6bxbySoW6KYY1UKP4WZ/exec'; // Replace with your web app URL
-    const data = { score: score };
+        function handleReset() {
+            reset(); // Clear canvas and reset state
+        }
 
-    fetch(url, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-    })
-}
+        function sendScoresToSheet(scores) {
+            const url = 'https://script.google.com/macros/s/AKfycbyMGIeJog6ad7yfCirNaz1hAY-41PQIDSKOty1rbt_P1mvHm6bxbySoW6KYY1UKP4WZ/exec'; // Replace with your web app URL
+            const data = { scores: scores };
 
-startButton.addEventListener('click', () => {
-    if (!animationFrameId) {
-        reset();
-        draw();
-    }
-});
+            fetch(url, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            })
+            .then(response => response.text())
+            .then(result => {
+                console.log('Success:', result);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
 
-resetButton.addEventListener('click', handleReset);
+        startButton.addEventListener('click', () => {
+            if (!animationFrameId) {
+                reset();
+                draw();
+            }
+        });
 
-initialDraw();
-reset(); // Ensure the flashFrame is set before starting
+        resetButton.addEventListener('click', handleReset);
 
-</script>
+        initialDraw();
+        reset(); // Ensure the flashFrame is set before starting
+    </script>
 </body>
 </html>
