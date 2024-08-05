@@ -175,22 +175,30 @@ function handleReset() {
 }
 
 function sendScoreToSheet(score) {
-    const url = 'https://script.google.com/macros/s/AKfycbz9zRLK0UO2WSx7NFQ95JcXvuUDT9RFPmppXtKtF7g_03vKxmi--hMJTjRFLEgV5aSb/exec'; // Replace with the URL from the Apps Script deployment
+    const url = 'https://script.google.com/macros/s/AKfycbyMGIeJog6ad7yfCirNaz1hAY-41PQIDSKOty1rbt_P1mvHm6bxbySoW6KYY1UKP4WZ/exec'; // Replace with your web app URL
     const data = { score: score };
 
     fetch(url, {
         method: 'POST',
+        mode: 'no-cors',
         headers: {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify(data),
     })
-    .then(response => response.text())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok ' + response.statusText);
+        }
+        return response.text();
+    })
     .then(result => {
         console.log('Success:', result);
+        alert('Success: ' + result);
     })
     .catch(error => {
         console.error('Error:', error);
+        alert('Error: ' + error);
     });
 }
 
